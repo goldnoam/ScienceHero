@@ -90,6 +90,70 @@ const GRADES: GradeLevel[] = [
 
 // --- Sub-Components ---
 
+const ShareButton = ({ 
+    title, 
+    text, 
+    className = "", 
+    iconSize = 20, 
+    showLabel = false,
+    label = "שתף"
+}: { 
+    title: string, 
+    text: string, 
+    className?: string, 
+    iconSize?: number,
+    showLabel?: boolean,
+    label?: string
+}) => {
+    const [shareStatus, setShareStatus] = useState<'idle' | 'copied'>('idle');
+
+    const handleShare = async (e: React.MouseEvent) => {
+        e.stopPropagation(); // Prevent event bubbling if inside a card
+        
+        const shareData = {
+            title: title,
+            text: text,
+            url: window.location.href, 
+        };
+
+        if (navigator.share) {
+            try {
+                await navigator.share(shareData);
+            } catch (err) {
+                console.error('Error sharing:', err);
+            }
+        } else {
+             try {
+                await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`);
+                setShareStatus('copied');
+                setTimeout(() => setShareStatus('idle'), 2000);
+             } catch (err) {
+                alert('שגיאה בהעתקה ללוח');
+             }
+        }
+    };
+
+    return (
+        <button
+            onClick={handleShare}
+            className={`flex items-center gap-2 transition-colors relative focus:outline-none ${className}`}
+            title="שתף"
+        >
+            {shareStatus === 'copied' ? <Check size={iconSize} /> : <Share2 size={iconSize} />}
+            {showLabel && (
+                <span>
+                    {shareStatus === 'copied' ? 'הועתק ללוח!' : label}
+                </span>
+            )}
+            {shareStatus === 'copied' && !showLabel && (
+                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 text-xs bg-gray-800 text-white px-2 py-1 rounded shadow whitespace-nowrap z-10">
+                    הועתק!
+                </div>
+            )}
+        </button>
+    );
+};
+
 const Header = ({ 
     currentGrade, 
     onHome, 
@@ -116,7 +180,7 @@ const Header = ({
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
                  <button
                     onClick={onToggleDarkMode}
                     className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -124,6 +188,12 @@ const Header = ({
                 >
                     {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
                 </button>
+
+                <ShareButton 
+                    title="SciTech IL" 
+                    text="פלטפורמת לימוד אינטראקטיבית למדעים וטכנולוגיה"
+                    className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400"
+                />
 
                 {currentGrade && (
                     <span className={`hidden sm:inline-block px-3 py-1 rounded-full text-sm font-medium ${currentGrade.color}`}>
@@ -229,9 +299,17 @@ const TopicExplorer = ({
                             </div>
                             
                             <div className="p-6 flex-grow">
-                                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2 group-hover:opacity-80 transition-opacity">
-                                    {topic.title}
-                                </h3>
+                                <div className="flex justify-between items-start mb-2 gap-2">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:opacity-80 transition-opacity">
+                                        {topic.title}
+                                    </h3>
+                                    <ShareButton 
+                                        title={topic.title} 
+                                        text={topic.description} 
+                                        className="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 shrink-0 mt-1" 
+                                        iconSize={18} 
+                                    />
+                                </div>
                                 <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed opacity-90 line-clamp-3">
                                     {topic.description}
                                 </p>
@@ -389,7 +467,6 @@ const ContentViewer = ({
     const [content, setContent] = useState<ContentData | null>(null);
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'learn' | 'demo' | 'quiz'>('learn');
-    const [shareStatus, setShareStatus] = useState<'idle' | 'copied'>('idle');
 
     useEffect(() => {
         const loadContent = async () => {
@@ -400,30 +477,6 @@ const ContentViewer = ({
         };
         loadContent();
     }, [topic, grade]);
-
-    const handleShare = async () => {
-        const shareData = {
-            title: `SciTech IL - ${topic.title}`,
-            text: `אני לומד על ${topic.title} (${grade.label}) באתר SciTech IL!`,
-            url: window.location.href, 
-        };
-
-        if (navigator.share) {
-            try {
-                await navigator.share(shareData);
-            } catch (err) {
-                console.error('Error sharing:', err);
-            }
-        } else {
-             try {
-                await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}`);
-                setShareStatus('copied');
-                setTimeout(() => setShareStatus('idle'), 2000);
-             } catch (err) {
-                alert('שגיאה בהעתקה ללוח');
-             }
-        }
-    };
 
     if (loading) {
         return (
@@ -454,20 +507,14 @@ const ContentViewer = ({
                     </button>
                     <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{topic.title}</h2>
                 </div>
-                <button
-                    onClick={handleShare}
-                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors relative"
-                >
-                    {shareStatus === 'copied' ? <Check size={18} /> : <Share2 size={18} />}
-                    <span className="hidden sm:inline">
-                        {shareStatus === 'copied' ? 'הועתק ללוח!' : 'שתף נושא'}
-                    </span>
-                    {shareStatus === 'copied' && (
-                        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs bg-gray-800 text-white px-2 py-1 rounded shadow whitespace-nowrap">
-                            הקישור הועתק!
-                        </div>
-                    )}
-                </button>
+                
+                <ShareButton 
+                    title={`SciTech IL - ${topic.title}`}
+                    text={`אני לומד על ${topic.title} (${grade.label}) באתר SciTech IL!`}
+                    className="flex items-center gap-2 px-4 py-2 bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/50 transition-colors"
+                    showLabel={true}
+                    label="שתף נושא"
+                />
             </div>
 
             {/* Introduction Card */}
