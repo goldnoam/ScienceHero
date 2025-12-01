@@ -36,6 +36,7 @@
                         'float': 'float 3s ease-in-out infinite',
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'wobble': 'wobble 1s ease-in-out infinite',
+                        'cartoon': 'cartoon 3s ease-in-out infinite',
                     },
                     keyframes: {
                         float: {
@@ -45,6 +46,10 @@
                         wobble: {
                             '0%, 100%': { transform: 'rotate(-2deg)' },
                             '50%': { transform: 'rotate(2deg)' },
+                        },
+                        cartoon: {
+                            '0%, 100%': { transform: 'translateY(0) rotate(0deg) scale(1)' },
+                            '50%': { transform: 'translateY(-4px) rotate(-1deg) scale(1.02)' },
                         }
                     }
                 }

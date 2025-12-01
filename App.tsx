@@ -174,7 +174,7 @@ const Header = ({
                     <Atom size={24} />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 group-hover:animate-wobble">
+                    <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 animate-cartoon">
                         SciTech IL - מדעים וטכנולוגיה
                     </h1>
                 </div>
