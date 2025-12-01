@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { GradeLevel, Topic, ContentData, AppState, QuizQuestion } from './types';
 import * as GeminiService from './services/geminiService';
@@ -90,38 +89,6 @@ const GRADES: GradeLevel[] = [
 ];
 
 // --- Sub-Components ---
-
-const ApiKeySelection = ({ onSelectKey }: { onSelectKey: () => void }) => (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 transition-colors duration-300">
-        <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl max-w-md w-full text-center border border-gray-100 dark:border-gray-700">
-            <div className="bg-blue-100 dark:bg-blue-900/30 p-4 rounded-full inline-flex mb-6 text-blue-600 dark:text-blue-400">
-                <Key size={48} />
-            </div>
-            <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-white">ברוכים הבאים ל-SciTech IL</h1>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-                כדי להשתמש בפלטפורמה וליצור תוכן לימודי מותאם אישית באמצעות בינה מלאכותית, יש לבחור מפתח API.
-            </p>
-            <button 
-                onClick={onSelectKey}
-                className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-bold shadow-lg shadow-blue-500/30 transition-all transform hover:scale-105 mb-4 flex items-center justify-center gap-2"
-            >
-                <Key size={20} />
-                בחר מפתח API
-            </button>
-             <p className="text-xs text-gray-500 dark:text-gray-400 mt-4">
-                למידע נוסף על חיוב ותמחור: 
-                <a 
-                    href="https://ai.google.dev/gemini-api/docs/billing" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-blue-500 hover:underline mx-1"
-                >
-                    ai.google.dev/gemini-api/docs/billing
-                </a>
-            </p>
-        </div>
-    </div>
-);
 
 const Header = ({ 
     currentGrade, 
@@ -239,7 +206,6 @@ const TopicExplorer = ({
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20">
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                    <p className="text-gray-500 dark:text-gray-400 animate-pulse">הבינה המלאכותית מכינה את רשימת הנושאים...</p>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -249,7 +215,7 @@ const TopicExplorer = ({
                             onClick={() => onSelect(topic)}
                             className={`${currentGrade.cardTheme} rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden cursor-pointer group flex flex-col`}
                         >
-                            {/* AI Generated Image Placeholder */}
+                            {/* AI Generated Image Placeholder via Pollinations */}
                             <div className="h-40 w-full overflow-hidden bg-gray-200 dark:bg-gray-700 relative">
                                 <img 
                                     src={`https://image.pollinations.ai/prompt/${encodeURIComponent(topic.visualPrompt || topic.title)}?width=400&height=200&nologo=true&seed=${topic.id}`}
@@ -463,8 +429,6 @@ const ContentViewer = ({
         return (
             <div className="flex flex-col items-center justify-center min-h-[400px]">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
-                <p className="text-gray-500 dark:text-gray-400 animate-pulse">מכין את מערך השיעור...</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-2">הבינה המלאכותית כותבת הסברים, חידונים והדגמות</p>
             </div>
         );
     }
@@ -472,7 +436,7 @@ const ContentViewer = ({
     if (!content) {
         return (
             <div className="text-center py-20">
-                <p className="text-red-500 dark:text-red-400">שגיאה בטעינת התוכן. ייתכן שאין מפתח API מוגדר.</p>
+                <p className="text-red-500 dark:text-red-400">לא נמצא תוכן לנושא זה.</p>
                 <button onClick={onBack} className="mt-4 text-blue-600 hover:underline">חזור לרשימה</button>
             </div>
         );
@@ -612,7 +576,6 @@ export default function App() {
     const [topics, setTopics] = useState<Topic[]>([]);
     const [loadingTopics, setLoadingTopics] = useState(false);
     const [totalPoints, setTotalPoints] = useState(0);
-    const [apiKeySelected, setApiKeySelected] = useState(false);
     
     // Dark mode state
     const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -621,38 +584,6 @@ export default function App() {
         }
         return false;
     });
-
-    // Check for API Key on mount
-    useEffect(() => {
-        async function checkApiKey() {
-            // Check process.env first to bypass selection if configured
-            if (process.env.API_KEY) {
-                setApiKeySelected(true);
-                return;
-            }
-
-            if ((window as any).aistudio && (window as any).aistudio.hasSelectedApiKey) {
-                const hasKey = await (window as any).aistudio.hasSelectedApiKey();
-                setApiKeySelected(hasKey);
-            } else {
-                // If we are not in the AI Studio environment and no env key is present,
-                // we technically can't run the AI. 
-                // However, to prevent blocking the UI completely in dev/fallback:
-                setApiKeySelected(false);
-            }
-        }
-        checkApiKey();
-    }, []);
-
-    const handleSelectApiKey = async () => {
-        if ((window as any).aistudio && (window as any).aistudio.openSelectKey) {
-            await (window as any).aistudio.openSelectKey();
-            // Assume success after closing dialog or re-check
-            // To be safe, we re-check
-            const hasKey = await (window as any).aistudio.hasSelectedApiKey();
-            setApiKeySelected(hasKey);
-        }
-    };
 
     useEffect(() => {
         if (isDarkMode) {
@@ -691,10 +622,6 @@ export default function App() {
     const handleQuizPoints = (points: number) => {
         setTotalPoints(prev => prev + points);
     };
-
-    if (!apiKeySelected) {
-        return <ApiKeySelection onSelectKey={handleSelectApiKey} />;
-    }
 
     return (
         <div className="min-h-screen flex flex-col transition-colors duration-300">
