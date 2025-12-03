@@ -20,7 +20,8 @@ import {
     FlaskConical,
     Copy,
     Check,
-    Key
+    Key,
+    Download
 } from 'lucide-react';
 
 // --- Constants & Data ---
@@ -106,6 +107,7 @@ const ShareButton = ({
     label?: string
 }) => {
     const [shareStatus, setShareStatus] = useState<'idle' | 'copied'>('idle');
+    const { playSuccess } = useSoundEffects();
 
     const handleShare = async (e: React.MouseEvent) => {
         e.stopPropagation(); // Prevent event bubbling if inside a card
@@ -125,6 +127,7 @@ const ShareButton = ({
         } else {
              try {
                 await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`);
+                playSuccess();
                 setShareStatus('copied');
                 setTimeout(() => setShareStatus('idle'), 2000);
              } catch (err) {
@@ -174,7 +177,7 @@ const Header = ({
                     <Atom size={24} />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 animate-cartoon">
+                    <h1 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600 dark:from-blue-400 dark:to-purple-400 animate-cartoon animate-fade-in-up">
                         SciTech IL - מדעים וטכנולוגיה
                     </h1>
                 </div>
@@ -216,7 +219,7 @@ const Footer = () => (
                 <Microscope className="text-blue-400" />
                 <span className="text-lg font-semibold text-white">SciTech IL</span>
             </div>
-            <p className="text-sm mb-2">(C) Noam Gold AI 2025</p>
+            <p className="text-sm mb-2">(C) Noam Gold AI 2025 (v2.0 Static)</p>
             <p className="text-sm">
                 Send Feedback: <a href="mailto:gold.noam@gmail.com" className="text-blue-400 hover:text-blue-300 transition-colors">gold.noam@gmail.com</a>
             </p>
@@ -226,7 +229,7 @@ const Footer = () => (
 
 const GradeSelector = ({ onSelect }: { onSelect: (grade: GradeLevel) => void }) => (
     <div className="animate-fade-in-up">
-        <h2 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-gray-100 transition-colors duration-300">בחר את הכיתה שלך</h2>
+        <h2 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-gray-100 transition-colors duration-300 animate-fade-in-up">בחר את הכיתה שלך</h2>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
             {GRADES.map((grade) => (
                 <button
@@ -254,11 +257,19 @@ const TopicExplorer = ({
     currentGrade: GradeLevel
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
+    const { playSuccess } = useSoundEffects();
 
     const filteredTopics = topics.filter(t => 
         t.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
         t.description.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleDownloadPdf = (e: React.MouseEvent, topicTitle: string) => {
+        e.stopPropagation();
+        playSuccess();
+        // Simulate PDF download
+        alert(`מוריד קובץ PDF עבור הנושא: ${topicTitle} (הדמיה)`);
+    };
 
     return (
         <div className="animate-fade-in-up">
@@ -300,15 +311,24 @@ const TopicExplorer = ({
                             
                             <div className="p-6 flex-grow">
                                 <div className="flex justify-between items-start mb-2 gap-2">
-                                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:opacity-80 transition-opacity">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 group-hover:opacity-80 transition-opacity animate-fade-in-up">
                                         {topic.title}
                                     </h3>
-                                    <ShareButton 
-                                        title={topic.title} 
-                                        text={topic.description} 
-                                        className="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 shrink-0 mt-1" 
-                                        iconSize={18} 
-                                    />
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={(e) => handleDownloadPdf(e, topic.title)}
+                                            className="text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors shrink-0 mt-1"
+                                            title="הורד PDF"
+                                        >
+                                            <Download size={18} />
+                                        </button>
+                                        <ShareButton 
+                                            title={topic.title} 
+                                            text={topic.description} 
+                                            className="text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 shrink-0 mt-1" 
+                                            iconSize={18} 
+                                        />
+                                    </div>
                                 </div>
                                 <p className="text-gray-700 dark:text-gray-300 text-sm leading-relaxed opacity-90 line-clamp-3">
                                     {topic.description}
@@ -373,7 +393,7 @@ const QuizComponent = ({
         return (
             <div className="text-center py-10 animate-fade-in">
                 <div className="text-6xl mb-4 animate-bounce">🏆</div>
-                <h3 className="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100">כל הכבוד!</h3>
+                <h3 className="text-2xl font-bold mb-2 text-gray-800 dark:text-gray-100 animate-fade-in-up">כל הכבוד!</h3>
                 <p className="text-xl text-gray-600 dark:text-gray-300 mb-6">צברת {score} נקודות בחידון זה.</p>
                 <button 
                     onClick={() => {
@@ -401,7 +421,7 @@ const QuizComponent = ({
                 <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{score} נקודות</span>
             </div>
             
-            <h3 className="text-lg font-bold mb-6 text-gray-800 dark:text-gray-100">{question.question}</h3>
+            <h3 className="text-lg font-bold mb-6 text-gray-800 dark:text-gray-100 animate-fade-in-up">{question.question}</h3>
 
             <div className="space-y-3">
                 {question.options.map((option, idx) => {
@@ -480,8 +500,35 @@ const ContentViewer = ({
 
     if (loading) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <div className="animate-pulse space-y-8 min-h-[500px]">
+                {/* Header Skeleton */}
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+                        <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-64"></div>
+                    </div>
+                    <div className="h-10 bg-gray-200 dark:bg-gray-700 rounded-lg w-32"></div>
+                </div>
+
+                {/* Intro Card Skeleton */}
+                <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border-r-4 border-gray-200 dark:border-gray-700">
+                     <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-48 mb-4"></div>
+                     <div className="space-y-3">
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-full"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-3/4"></div>
+                     </div>
+                </div>
+
+                {/* Tabs Skeleton */}
+                <div className="flex gap-3">
+                    <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-xl w-36"></div>
+                    <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-xl w-36"></div>
+                    <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded-xl w-36"></div>
+                </div>
+
+                {/* Tab Content Skeleton */}
+                <div className="bg-white dark:bg-gray-800 h-64 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700"></div>
             </div>
         );
     }
@@ -505,7 +552,7 @@ const ContentViewer = ({
                     >
                         <ArrowRight size={24} />
                     </button>
-                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{topic.title}</h2>
+                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white animate-fade-in-up">{topic.title}</h2>
                 </div>
                 
                 <ShareButton 
@@ -519,7 +566,7 @@ const ContentViewer = ({
 
             {/* Introduction Card */}
             <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm mb-8 border-r-4 border-blue-500 transition-colors duration-300">
-                <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100">מבט מדעי</h3>
+                <h3 className="text-lg font-semibold mb-3 text-gray-800 dark:text-gray-100 animate-fade-in-up">מבט מדעי</h3>
                 <p className="text-lg leading-relaxed text-gray-700 dark:text-gray-300">
                     {content.introduction}
                 </p>
@@ -552,7 +599,7 @@ const ContentViewer = ({
             <div className="animate-fade-in">
                 {activeTab === 'learn' && (
                     <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-300">
-                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white">
+                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-gray-900 dark:text-white animate-fade-in-up">
                             <Video className="text-red-500" />
                             סרטונים מומלצים
                         </h3>
@@ -583,7 +630,7 @@ const ContentViewer = ({
                     <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-700 transition-colors duration-300">
                         <div className="flex flex-col md:flex-row gap-8 items-start">
                             <div className="flex-1">
-                                <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">{content.demonstration.title}</h3>
+                                <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white animate-fade-in-up">{content.demonstration.title}</h3>
                                 <p className="text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed mb-6">
                                     {content.demonstration.description}
                                 </p>
@@ -624,10 +671,16 @@ export default function App() {
     const [loadingTopics, setLoadingTopics] = useState(false);
     const [totalPoints, setTotalPoints] = useState(0);
     
-    // Dark mode state
+    // Dark mode state with persistence
     const [isDarkMode, setIsDarkMode] = useState(() => {
-        if (typeof window !== 'undefined' && window.matchMedia) {
-            return window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (typeof window !== 'undefined') {
+            const savedMode = localStorage.getItem('darkMode');
+            if (savedMode !== null) {
+                return savedMode === 'true';
+            }
+            if (window.matchMedia) {
+                return window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
         }
         return false;
     });
@@ -638,6 +691,7 @@ export default function App() {
         } else {
             document.documentElement.classList.remove('dark');
         }
+        localStorage.setItem('darkMode', String(isDarkMode));
     }, [isDarkMode]);
 
     const handleGradeSelect = async (grade: GradeLevel) => {
@@ -694,7 +748,7 @@ export default function App() {
                             >
                                 <ArrowRight size={24} />
                             </button>
-                            <h2 className="text-3xl font-bold text-gray-800 dark:text-white">נושאי לימוד - {currentGrade.label}</h2>
+                            <h2 className="text-3xl font-bold text-gray-800 dark:text-white animate-fade-in-up">נושאי לימוד - {currentGrade.label}</h2>
                         </div>
                         <TopicExplorer 
                             topics={topics} 
